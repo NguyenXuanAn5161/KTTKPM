@@ -1,6 +1,7 @@
 package demo01.ex01;
 
 import java.util.Properties;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -12,7 +13,9 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
+
 import org.apache.log4j.BasicConfigurator;
+
 
 public class QueueReceiver {
 	public static void main(String[] args) throws Exception {
@@ -42,7 +45,7 @@ public class QueueReceiver {
 		// Cho receiver lắng nghe trên queue, chừng có message thì notify - async
 		System.out.println("Tý was listened on queue...");
 		receiver.setMessageListener(new MessageListener() {
-			@Override
+//			@Override
 			// có message đến queue, phương thức này được thực thi
 			public void onMessage(Message msg) {// msg là message nhận được
 				try {
@@ -62,5 +65,4 @@ public class QueueReceiver {
 			}
 		});
 	}
-
 }
