@@ -1,2 +1,0 @@
-package demo01.ex01;public class QueueReceiver {
-}

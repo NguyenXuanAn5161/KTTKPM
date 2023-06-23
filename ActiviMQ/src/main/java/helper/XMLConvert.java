@@ -15,6 +15,7 @@ public class XMLConvert<T> {
 	}
 
 	@SuppressWarnings("all")
+//	chuyển đổi một chuỗi xml thành 1 đối tượng java
 	public T xml2Object(String xml) throws Exception {
 		T sv = null;
 		JAXBContext ctx = JAXBContext.newInstance(type.getClass());
@@ -23,6 +24,7 @@ public class XMLConvert<T> {
 		return sv;
 	}
 
+//	Chuyển đổi 1 đối tượng java thành 1 chuỗi xml
 	public String object2XML(T obj) throws Exception {
 		JAXBContext ctx = JAXBContext.newInstance(type.getClass());
 		Marshaller ms = ctx.createMarshaller();

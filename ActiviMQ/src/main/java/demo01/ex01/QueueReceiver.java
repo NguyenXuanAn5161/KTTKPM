@@ -16,7 +16,7 @@ import javax.naming.InitialContext;
 
 import org.apache.log4j.BasicConfigurator;
 
-
+//Đây là một lớp nhận tin nhắn từ một hàng đợi
 public class QueueReceiver {
 	public static void main(String[] args) throws Exception {
 		// thiết lập môi trường cho JMS
@@ -31,7 +31,7 @@ public class QueueReceiver {
 		Object obj = ctx.lookup("ConnectionFactory");
 		ConnectionFactory factory = (ConnectionFactory) obj;
 		// lookup destination
-		Destination destination = (Destination) ctx.lookup("dynamicQueues/thanthidet");
+		Destination destination = (Destination) ctx.lookup("dynamicQueues/Nguyen");
 		// tạo connection
 		Connection con = factory.createConnection("admin", "admin");
 		// nối đến MOM

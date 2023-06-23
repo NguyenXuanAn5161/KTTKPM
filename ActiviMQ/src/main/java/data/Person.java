@@ -3,6 +3,12 @@ package data;
 import java.io.Serializable;
 import java.util.Date;
 
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+//đánh dấu bằng các chú thích xml để cho phép chuyển đổi giữa đối tượng java và xml
+@XmlRootElement
+@XmlType(propOrder={"mssv","hoten","ngaysinh"})
 public class Person implements Serializable {
 
 	/**
