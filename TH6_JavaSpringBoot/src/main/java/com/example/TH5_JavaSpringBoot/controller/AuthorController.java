@@ -60,41 +60,108 @@ public class AuthorController {
         return ResponseEntity.ok(foundAuthor);
     }
 //TODO: Update Author và Course
-    @PutMapping("/Update/{id}")
-    ResponseEntity<Author> updateAuthorAndCourse(@PathVariable Long id, @RequestBody Author author) {
-        try {
-            Author foundAuthor = authorRepositories.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy id = " + id));
-            foundAuthor.setName(author.getName());
-            // Kiểm tra nếu có danh sách Course
-            if (author.getCourses() != null && !author.getCourses().isEmpty()) {
-                for (Course course : author.getCourses()) {
-                    Course newCourse = new Course();
-                    newCourse.setName(course.getName());
-                    newCourse.setTitle(course.getTitle());
-                    newCourse.setCost(course.getCost());
-                    newCourse.setCurPrice(course.getCurPrice());
-                    newCourse.setAuthor(foundAuthor);
-                    foundAuthor.getCourses().add(newCourse);
-                    courseRepositories.save(newCourse);
+//    @PutMapping("/Update/{id}")
+//    ResponseEntity<Author> updateAuthorAndCourse(@PathVariable Long id, @RequestBody Author author) {
+//        try {
+//            Author foundAuthor = authorRepositories.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy id = " + id));
+//            foundAuthor.setName(author.getName());
+//            // Kiểm tra nếu có danh sách Course
+//            if (author.getCourses() != null && !author.getCourses().isEmpty()) {
+//                for (Course course : author.getCourses()) {
+//                    Course newCourse = new Course();
+//                    newCourse.setName(course.getName());
+//                    newCourse.setTitle(course.getTitle());
+//                    newCourse.setCost(course.getCost());
+//                    newCourse.setCurPrice(course.getCurPrice());
+//                    newCourse.setAuthor(foundAuthor);
+//                    foundAuthor.getCourses().add(newCourse);
+//                    courseRepositories.save(newCourse);
+//
+//                    // Thực hiện lưu thông tin Course vào Redis
+//                    insertAuthorAndCourse(foundAuthor);
+//                }
+//            }
+//            return ResponseEntity.ok(foundAuthor);
+//        } catch (Exception e) {
+//            throw  new RuntimeException("Lỗi khi thêm",e);
+//        }
+//    }
+@PutMapping("/Update/{id}")
+public ResponseEntity<Author> updateAuthorAndCourse(@PathVariable Long id, @RequestBody Author author) {
+    try {
+        Author foundAuthor = authorRepositories.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy id = " + id));
+        foundAuthor.setName(author.getName());
 
-                    // Thực hiện lưu thông tin Course vào Redis
-                    insertAuthorAndCourse(foundAuthor);
+        foundAuthor.getCourses().clear();
+
+        if (author.getCourses() != null && !author.getCourses().isEmpty()) {
+            for (Course course : author.getCourses()) {
+                // Tạo key cho Course trong Redis dựa trên id của Course
+                String courseKey = "course:" + course.getId();
+
+                // Kiểm tra xem Course đã tồn tại trong Redis chưa
+                boolean courseExists = template.opsForHash().hasKey(HASH_KEY_COURSE, courseKey);
+
+                // Nếu Course đã tồn tại, cập nhật thông tin mới cho Course trong Redis
+                if (courseExists) {
+                    template.opsForHash().put(HASH_KEY_COURSE, courseKey, course);
+                } else {
+                    System.out.println("Course " + courseKey + " không tồn tại");
+                }
+
+                // Thêm Course vào danh sách Courses của Author
+                foundAuthor.getCourses().add(course);
+            }
+        }
+
+        // Lưu thông tin về Author vào Redis
+        String authorKey = "Author_" + foundAuthor.getId();
+        template.opsForHash().put(HASH_KEY, authorKey, foundAuthor);
+
+        return ResponseEntity.ok(foundAuthor);
+    } catch (Exception e) {
+        throw new RuntimeException("Lỗi khi cập nhật", e);
+    }
+}
+    //TODO: Delete Author và Course
+//    @DeleteMapping("/Delete/{id}")
+//    ResponseEntity<Author> deleteAuthorAndCourse(@PathVariable Long id) {
+//        try {
+//            Author foundAuthor = authorRepositories.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy id = " + id));
+//            authorRepositories.delete(foundAuthor);
+//            return ResponseEntity.ok(foundAuthor);
+//        } catch (Exception e) {
+//            throw  new RuntimeException("Lỗi khi thêm",e);
+//        }
+//    }
+    @DeleteMapping("/Delete/{id}")
+    ResponseEntity<String> deleteAuthorAndCourse(@PathVariable Long id) {
+        try {
+            Author foundAuthor = authorRepositories.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy id = " + id));
+
+            // Xóa các Khóa học liên quan từ Redis và cơ sở dữ liệu
+            if (foundAuthor.getCourses() != null && !foundAuthor.getCourses().isEmpty()) {
+                for (Course course : foundAuthor.getCourses()) {
+                    // Xóa Khóa học từ Redis
+                    String courseKey = "course:" + course.getId();
+                    template.opsForHash().delete(HASH_KEY_COURSE, courseKey);
+
+                    // Xóa Khóa học từ cơ sở dữ liệu
+                    courseRepositories.delete(course);
                 }
             }
-            return ResponseEntity.ok(foundAuthor);
-        } catch (Exception e) {
-            throw  new RuntimeException("Lỗi khi thêm",e);
-        }
-    }
-    //TODO: Delete Author và Course
-    @DeleteMapping("/Delete/{id}")
-    ResponseEntity<Author> deleteAuthorAndCourse(@PathVariable Long id) {
-        try {
-            Author foundAuthor = authorRepositories.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy id = " + id));
+
+            // Xóa Tác giả từ Redis
+            String authorKey = "Author_" + foundAuthor.getId();
+            template.opsForHash().delete(HASH_KEY, authorKey);
+
+            // Xóa Tác giả từ cơ sở dữ liệu
             authorRepositories.delete(foundAuthor);
-            return ResponseEntity.ok(foundAuthor);
+
+            return ResponseEntity.ok("Xóa thành công!");
         } catch (Exception e) {
-            throw  new RuntimeException("Lỗi khi thêm",e);
+            throw new RuntimeException("Lỗi khi xóa", e);
         }
     }
 }
