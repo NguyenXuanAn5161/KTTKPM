@@ -12,4 +12,4 @@
 ![Ảnh 1 phần của minh chứng](results/minhchungActiveMQ.png)
 
 *[Link tham khảo viết file readme.md](https://github.com/hocchudong/thuctap032016/blob/master/README.md#taobang)*
-[Chuyển đến đây](#kiến-trúc-và-thiết-kế-phần-mềm)
+#### [Chuyển đến đây](#kiến-trúc-và-thiết-kế-phần-mềm)
